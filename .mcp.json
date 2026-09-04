@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "reaper": {
+      "command": "/Users/johnmaher/code/reaper-controller/bin/reaper-connector-server",
+      "args": []
+    }
+  }
+}

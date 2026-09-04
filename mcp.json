@@ -1,0 +1,10 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "reaper": {
+      "type": "stdio",
+      "command": "./bin/reaper-connector-server",
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}

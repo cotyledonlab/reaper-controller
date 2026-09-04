@@ -1,0 +1,8 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "reaper-controller",
+  "version": "0.1.0",
+  "description": "Agentic connector for the REAPER DAW: a studio engineer (tracks, FX, routing, mix) and session player (composed parts, live play-in, recorded takes) over background protocols — no computer-use.",
+  "license": "MIT",
+  "keywords": ["reaper", "daw", "osc", "midi", "reascript", "agents", "audio"]
+}

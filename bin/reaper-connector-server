@@ -1,0 +1,19 @@
+#!/bin/sh
+# Plugin-relative MCP launcher (agent-plugins.org: command is a bare name
+# or a plugin-relative ./ path — never an absolute venv path).
+# Prefers the package venv; falls back to system python3 with src/ on the
+# path; fails loud and clear when the `mcp` extra is missing.
+set -eu
+ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+if [ -x "$ROOT/.venv/bin/python" ]; then
+  PY="$ROOT/.venv/bin/python"
+else
+  PY="python3"
+  export PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
+fi
+if ! "$PY" -c "import mcp" 2>/dev/null; then
+  echo "reaper-connector-server: the 'mcp' package is missing." >&2
+  echo "Install it: pip install \"reaper-controller[mcp]\" (or: $ROOT/.venv via pip install -e \".[dev]\")" >&2
+  exit 3
+fi
+exec "$PY" -m reaper_connector.server "$@"
