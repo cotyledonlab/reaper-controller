@@ -116,3 +116,48 @@ with a second process (or REAPER itself).
 ## 17. Filenames with spaces break messages
 
 Same lesson as Pd: keep scratch/RPP/WAV paths space-free.
+
+## 18. RENDER_FILE set to a bare `.wav` name can become a directory
+
+`project.set_render` to `.../scratch/midnight_driver_drums.wav` then
+`project.save` wrote `RENDER_FILE ".../midnight_driver_drums.wav/drum_sweep.wav"`
+(quoted) — REAPER treated the path as a directory, created it, and kept
+the previous filename. Render still succeeded, just to the nested path.
+Rule: prefer `render --wav <abs-path>` (patched rendercopy, source
+untouched) over `set_render` for one-off bounces; when using
+`set_render`, read back the RPP line and confirm it names a file.
+Observed 2026-09-05 (midnight_driver session).
+
+## 19. `engineer.add_fx` name matching needs exact names
+
+`TrackFX_AddByName` substring matching surprises: with both formats
+scanned it can land the VST2 when you wanted VST3 (`OB-Xd`, `TDR Nova`,
+`TDR Kotelnikov` all matched `VST:` first), and it fails outright when
+the entry has a prefix (`PowerDrumKit` → `FX_NOT_FOUND`; the entry is
+`MT-PowerDrumKit`). Rule: check the true entry in
+`reaper-vstplugins_arm64.ini` first, pass the exact full name, and
+confirm via the reply's observed `name`. Observed 2026-09-05.
+
+## 20. Multi-out VSTi on a 2-channel track plays outputs 1–2 only
+
+MT-PowerDrumKit (16 out) on a default track: kick (1–2) sounded, every
+other piece vanished — the RPP shows why
+(`CONTAINER_CFG 2 2 2 0` with empty `<OUT_PINS>`). Diagnosis that
+proved it: mute everything else, bounce drums-only, run onset analysis
+(high-band flux ~0.01 = no hats/snare/crash anywhere). Fixes: FX chain
+right-click → "Build multichannel routing for output of selected FX"
+(live + renders, persists in project), or per-pad output → Master
+inside the plugin. Corollary: if the user hears pieces live that your
+renders lack, suspect plugin-internal enable states AND output routing
+— compare live vs render before arranging further. Observed 2026-09-05
+(midnight_driver session).
+
+## 21. No track-reorder op — plan folder-bus order upfront
+
+The bridge can `add_track` (appends) and `set_folder` (depth 1 opens,
+-1 closes) but cannot move tracks, and a folder parent must precede its
+children. So either create the MIXBUS track first, or have the human
+drag it to the top (one drag) before setting depths. Good candidate: a track holding a flat transparent FX (fresh TDR Kotelnikov) makes an
+ideal bus — verify unity via `fx_get_param` (threshold min, makeup/out
+at center) and confirm the folder in `read` (`ISBUS` depth/flag) +
+re-render. Observed 2026-09-05.

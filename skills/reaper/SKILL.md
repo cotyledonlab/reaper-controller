@@ -47,6 +47,28 @@ reaper-connector bridge-send engineer.fx_list --params '{"track":0}'
 reaper-connector osc-send /track/1/volume 0.5   # fader taper to +12dB — never for exact unity
 ```
 
+Summing bus: folder parent must precede children and tracks can't be
+reordered — create the MIXBUS track first (or human-drag it to the
+top), `add_fx` a flat transparent comp, then `set_folder` depth 1 on
+the bus and -1 on the last track; verify via `read` (`ISBUS`) +
+render. Full rules: pitfalls #18–21.
+
+## Plugin discovery (read before reaching for ReaSynth)
+
+`docs/plugins.md` (repo) is the observed instrument/FX inventory — every
+entry loaded live with its exact `engineer.add_fx` string. Discover
+before defaulting: check the inventory, `add_fx` by name, confirm via
+the reply's observed `name`, then `render` + `analyze`. ReaSynth is the
+fallback, not the first pick — Surge XT is render-verified, Vital /
+Dexed / OB-Xd / BBC SO / Splice INSTRUMENT all load.
+
+Sound design: `engineer.fx_param_names` lists a plugin's knobs by index
+(chunk with `from`/`count` — big synths expose thousands). Read current
+values with `engineer.fx_get_param`, move them with
+`engineer.fx_set_param` (normalized 0–1, observed back), then re-render
+— every tweak in Midnight Driver (Surge/Vital envelopes, filters,
+unison) went through this loop.
+
 ## Player recipes
 
 ```bash
@@ -59,7 +81,9 @@ reaper-connector bridge-send player.quantize --params '{"track":2,"grid_beats":0
 Punch rule: never start phrases on beat 0 (transport roll-up eats the
 downbeat); count in 1–2 beats. After recording, `read` the file — take
 lanes show what really landed — then `render` + `analyze` (`ok=true` =
-audible, unclipped).
+audible, unclipped). Unknown instrument map? Chromatic-sweep it: one
+note per 0.5 s across the range, bounce, per-note peak slice — that's
+how ReaSynDr was unmasked as a single pitch-tracking voice.
 
 ## Gotchas (full list: references/pitfalls.md — bundled copy, also at docs/pitfalls.md in the repo)
 

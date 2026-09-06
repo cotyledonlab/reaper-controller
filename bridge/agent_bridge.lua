@@ -345,6 +345,19 @@ local function handle(op_id, req)
     local observed = reaper.TrackFX_GetParamNormalized(tr, p.fx or 0, p.param or 0)
     reply_ok(op_id, { requested = p.value, observed = observed },
       { 'op:engineer.fx_set_param', 'observed:' .. tostring(observed) })
+  elseif op == 'engineer.fx_param_names' then
+    local p = req.params or {}
+    local tr = reaper.GetTrack(0, p.track or 0)
+    if not tr then reply_err(op_id, 'NO_TRACK', 'no track'); return end
+    local total = reaper.TrackFX_GetNumParams(tr, p.fx or 0)
+    local from, names = p.from or 0, {}
+    local upto = math.min(total, from + (p.count or total))
+    for i = from, upto - 1 do
+      local _, name = reaper.TrackFX_GetParamName(tr, p.fx or 0, i, '')
+      names[#names + 1] = { index = i, name = name }
+    end
+    reply_ok(op_id, { total = total, from = from, names = names },
+      { 'op:engineer.fx_param_names', 'observed:total=' .. total })
   elseif op == 'player.quantize' then
     local p = req.params or {}
     local take, err = find_take(p.track or 0, p.item)
